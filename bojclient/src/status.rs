@@ -3,7 +3,6 @@ use crate::problem::ProblemId;
 use serde::{Serialize, Deserialize};
 use crate::CLIENT;
 use serde_aux::field_attributes::deserialize_number_from_string;
-use serde_with::rust::deserialize_ignore_any;
 
 #[derive(Clone, Debug)]
 pub struct Status(Html);
@@ -78,7 +77,7 @@ pub async fn ajax(solution_id: u32) -> Result<AjaxResponse, reqwest::Error> {
 		.send().await?.json().await?)
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum SolutionResult {
 	#[serde(alias = "맞았습니다!!")]
 	Accepted,
@@ -96,6 +95,6 @@ pub enum SolutionResult {
 	RuntimeError,
 	#[serde(alias = "컴파일 에러")]
 	CompileError,
-	#[serde(other, deserialize_with = "deserialize_ignore_any")]
+	#[serde(other)]
 	Other
 }

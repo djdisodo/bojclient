@@ -1,5 +1,5 @@
-use std::fs::{read, read_to_string};
-use std::path::{Path, PathBuf};
+use std::fs::read_to_string;
+use std::path::Path;
 use std::time::Duration;
 use clap::{App, Arg};
 use yaml_rust::YamlLoader;
@@ -36,13 +36,13 @@ async fn main() {
 
     println!("fetching user id...");
 
-    let user_id = Main::request().await?.get_username().to_owned();
+    let user_id = Main::request().await.unwrap().get_username().to_owned();
 
     println!("user id: {}", user_id);
 
     println!("requesting csrf_key...");
     let csrf_key = Submit::request(problem_id).await.unwrap().get_csrf_key().await.unwrap();
-    println!("csrf_key: {:#?}", csrf_key);
+    println!("csrf_key: {}", csrf_key.0);
 
     let submit_form = bojclient::submit::SubmitRequestForm {
         recaptcha_response: "".to_string(),
@@ -54,13 +54,14 @@ async fn main() {
     };
 
     println!("sending submit request...");
-    println!("{:#?}", submit_form.submit(problem_id).await);
+
+    submit_form.submit(problem_id).await.unwrap();
 
     println!("finding solution id...");
     let solutions = Status::request(&StatusRequest {
         problem_id: Some(problem_id),
         user_id: Some(user_id)
-    }).await?.get_solutions();
+    }).await.unwrap().get_solutions();
 
     let current_solution = &solutions[0];
 
@@ -73,9 +74,9 @@ async fn main() {
     let mut result = current_solution.result;
 
     while result == SolutionResult::Other {
-        println!("채점 중...");
+        println!("evaluating...");
         tokio::time::sleep(Duration::from_secs(1)).await;
-        result = bojclient::status::ajax(current_solution.solution_id).await?.result_name
+        result = bojclient::status::ajax(current_solution.solution_id).await.unwrap().result_name
     }
 
     println!("result: {:?}", result)
