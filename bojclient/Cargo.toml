@@ -1,0 +1,18 @@
+[package]
+name = "bojclient"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json", "cookies"] }
+serde = { version = "1.0.132", features = ["derive"] }
+serde-aux = "3.0.1"
+scraper = "0.12.0"
+serde_repr = "0.1"
+serde_with = "1.11.0"
+serde_json = "1.0.73"
+
+[dev-dependencies]
+tokio = { version = "1.15.0", features = ["rt", "macros"] }

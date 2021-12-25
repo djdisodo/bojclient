@@ -1,0 +1,16 @@
+[package]
+name = "bojsubmit"
+version = "0.1.0"
+edition = "2021"
+authors = ["sodo <djdisodo@gmail.com>"]
+license = "MIT"
+description = "submit code to boj"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bojclient = { path = "../bojclient" }
+yaml-rust = "0.4"
+tokio = { version = "1.15.0", features = ["rt", "macros", "rt-multi-thread"] }
+clap = "2.34.0"
+serde_plain = "1.0.0"
