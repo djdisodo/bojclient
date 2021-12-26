@@ -1,3 +1,4 @@
+use reqwest::StatusCode;
 use scraper::{Html, Selector};
 use crate::problem::ProblemId;
 use serde::{Serialize, Deserialize};
@@ -14,8 +15,8 @@ pub struct SubmitRequestForm {
 }
 
 impl SubmitRequestForm {
-	pub async fn submit(&self, problem_id: ProblemId) -> Result<(), reqwest::Error> {
-		CLIENT.post(get_url(problem_id)).form(&self).send().await.map(|_| ())
+	pub async fn submit(&self, problem_id: ProblemId) -> Result<StatusCode, reqwest::Error> {
+		CLIENT.post(get_url(problem_id)).form(&self).send().await.map(|r| r.status())
 	}
 
 }
