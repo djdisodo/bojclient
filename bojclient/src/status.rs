@@ -3,7 +3,6 @@ use crate::problem::ProblemId;
 use serde::{Serialize, Deserialize};
 use crate::CLIENT;
 use serde_aux::field_attributes::deserialize_number_from_string;
-
 #[derive(Clone, Debug)]
 pub struct Status(Html);
 
@@ -20,7 +19,7 @@ impl Status {
 		)))
 	}
 
-	pub fn get_solutions(&self) -> Vec<Sulution> {
+	pub fn get_solutions(&self) -> Vec<Solution> {
 		let selector = Selector::parse(r#"tr[id^=solution-]"#).unwrap();
 		self.0.select(&selector).map(|submission| {
 			let td_selector = Selector::parse(r#"td"#).unwrap();
@@ -30,7 +29,7 @@ impl Status {
 			let problem_id: u32 = tds.next().unwrap().text().next().unwrap().parse().unwrap();
 			let result: String = tds.next().unwrap().text().next().unwrap().to_owned();
 
-			Sulution {
+			Solution {
 				solution_id,
 				user,
 				problem_id: ProblemId(problem_id),
@@ -42,7 +41,7 @@ impl Status {
 }
 
 #[derive(Clone, Debug)]
-pub struct Sulution {
+pub struct Solution {
 	pub solution_id: u32,
 	pub user: String,
 	pub problem_id: ProblemId,
@@ -56,12 +55,18 @@ pub struct Sulution {
 pub struct AjaxResponse {
 	#[serde(deserialize_with = "deserialize_number_from_string")]
 	pub solution_id: u32,
+	#[serde(flatten)]
+	pub resource_used: Option<ResourceUsed>,
+	pub result_color: String,
+	pub result_name: SolutionResult
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct ResourceUsed {
 	#[serde(deserialize_with = "deserialize_number_from_string")]
 	pub time: u32,
 	#[serde(deserialize_with = "deserialize_number_from_string")]
-	pub memory: u32, // KB
-	pub result_color: String,
-	pub result_name: SolutionResult
+	pub memory: u32
 }
 
 pub async fn ajax(solution_id: u32) -> Result<AjaxResponse, reqwest::Error> {

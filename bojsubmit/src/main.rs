@@ -1,5 +1,5 @@
 use std::fs::read_to_string;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use clap::{App, Arg};
 use yaml_rust::YamlLoader;
@@ -70,16 +70,15 @@ async fn main() {
     if matches.occurrences_of("wait") == 0 {
         return;
     }
+    let mut result = bojclient::status::ajax(current_solution.solution_id).await.unwrap();
 
-    let mut result = current_solution.result;
-
-    while result == SolutionResult::Other {
+    while result.result_name == SolutionResult::Other {
         println!("evaluating...");
         tokio::time::sleep(Duration::from_secs(1)).await;
-        result = bojclient::status::ajax(current_solution.solution_id).await.unwrap().result_name
+        result = bojclient::status::ajax(current_solution.solution_id).await.unwrap()
     }
 
-    println!("result: {:?}", result)
+    println!("result: {:#?}", result)
 
 }
 
@@ -88,7 +87,7 @@ struct SubmitConfig {
     login_cookie: LoginCookie,
     pre_run: String,
     run: String,
-    target_file: String,
+    target_file: PathBuf,
     language: String
 }
 
@@ -109,7 +108,15 @@ fn read_config(path: &Path) -> SubmitConfig {
                 config.login_cookie.online_judge = doc["online_judge"].as_str().unwrap_or(&config.login_cookie.online_judge).to_string();
                 config.pre_run = doc["pre_run"].as_str().unwrap_or(&config.pre_run).to_string();
                 config.run = doc["run"].as_str().unwrap_or(&config.run).to_string();
-                config.target_file = doc["target_file"].as_str().unwrap_or(&config.target_file).to_string();
+                config.target_file = doc["target_file"].as_str().map(|target_file_path| {
+                    let mut target_file_path = Path::new(target_file_path).to_path_buf();
+                    if target_file_path.is_relative() {
+                        let mut _path_buf = path.to_path_buf();
+                        _path_buf.push(target_file_path);
+                        target_file_path = _path_buf;
+                    }
+                    target_file_path
+                }).unwrap_or(config.target_file);
                 config.language = doc["language"].as_str().unwrap_or(&config.language).to_string();
             }
             Err(e) => eprintln!("{:#?}", e)
